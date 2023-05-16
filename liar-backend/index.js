@@ -27,8 +27,15 @@ const io = new Server(server, {
 
 const rooms = {};
 
-app.get("/", (req, res) => {
-  res.send("<h1>Hello worlsd</h1>");
+app.get("/*", function (req, res) {
+  res.sendFile(
+    path.join(__dirname, "../client/build/index.html"),
+    function (err) {
+      if (err) {
+        res.status(500).send(err);
+      }
+    }
+  );
 });
 
 io.on("connection", (socket) => {
