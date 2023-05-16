@@ -30,7 +30,7 @@ const rooms = {};
 
 app.get("/*", function (req, res) {
   res.sendFile(
-    path.join(__dirname, "../client/build/index.html"),
+    path.join(__dirname, "../liar/public/index.html"),
     function (err) {
       if (err) {
         res.status(500).send(err);
