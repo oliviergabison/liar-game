@@ -10,6 +10,7 @@ const jobs = require("./data/jobs");
 const race = require("./data/race");
 const sports = require("./data/sports");
 const animals = require("./data/animals");
+var path = require("path");
 
 const jobsLst = helpers.buildList("Job", jobs.jobs);
 const foodsLst = helpers.buildList("Food", food.food);
