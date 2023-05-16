@@ -1,15 +1,15 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
-import App from './App';
-import Create from './components/Create'
-import Join from './components/Join'
-import GameRoom from './components/GameRoom'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import reportWebVitals from './reportWebVitals';
-import { socket } from './socket';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import "./index.css";
+import App from "./App";
+import Create from "./components/Create";
+import Join from "./components/Join";
+import GameRoom from "./components/GameRoom";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import reportWebVitals from "./reportWebVitals";
+import { socket } from "./socket";
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = ReactDOM.createRoot(document.getElementById("root"));
 const sockets = socket.connect();
 const router = createBrowserRouter([
   {
@@ -18,17 +18,17 @@ const router = createBrowserRouter([
     errorElement: <h1>Wrong Page</h1>,
   },
   {
-    path: '/create',
-    element: <Create socket={sockets} />
+    path: "/create",
+    element: <Create socket={sockets} />,
   },
   {
-    path: '/join',
-    element: <Join socket={sockets} />
+    path: "/join",
+    element: <Join socket={sockets} />,
   },
   {
-    path: '/rooms/:id',
-    element: <GameRoom socket={sockets} />
-  }
+    path: "/rooms/:id",
+    element: <GameRoom socket={sockets} />,
+  },
 ]);
 root.render(
   <React.StrictMode>

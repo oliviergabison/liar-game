@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Button, Col, Row, Typography, Space } from 'antd';
-import { Link } from 'react-router-dom';
-import { socket } from './socket';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import { Button, Col, Row, Typography, Space } from "antd";
+import { Link } from "react-router-dom";
+import { socket } from "./socket";
+import "./App.css";
 const { Title } = Typography;
 
 function App() {
@@ -16,35 +16,75 @@ function App() {
     function onDisconnect() {
       setIsConnected(false);
     }
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect)
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
   });
 
-
-
   return (
-    <>
-      <Row>
-        {isConnected ? <h1>Connected</h1> : <h1>Not Connected</h1>}
-        <Col offset={12} span={24}>
-          <Space >
-            <Title level={3}>Liar Game</Title>
-          </Space>
-        </Col>
-      </Row>
-      <Row style={{marginTop: '50px'}}>
-        <Col offset={4} span={6}>
-          <Link to='create'>
-            <Button size='large' type='primary' style={{width: '100%'}}>Create</Button>
-          </Link>
-        </Col>
-        <Col offset={4} span={6}>
-          <Link to='join'>
-            <Button size='large' type='primary' style={{width: '100%'}}>Join</Button>
-          </Link>
-        </Col>
-      </Row>
-    </>
+    <div>
+      <Space
+        direction="horizontal"
+        style={{ width: "100%", justifyContent: "center" }}
+      >
+        <h1
+          style={{
+            fontFamily: "Roboto Mono",
+            verticalAlign: "middle",
+            color: "#F0F3BD",
+            marginTop: "70px",
+            fontSize: "50px",
+          }}
+        >
+          Liar Game
+        </h1>
+      </Space>
+
+      <Space
+        direction="horizontal"
+        style={{ width: "100%", justifyContent: "center" }}
+      >
+        <Link to="create">
+          <Button
+            size="large"
+            style={{
+              fontFamily: "Roboto Mono",
+              fontSize: "25px",
+              fontWeight: "bold",
+              marginTop: "50px",
+              width: "300px",
+              height: "120px",
+              color: "#090C08",
+              backgroundColor: "#F0F3BD",
+            }}
+            className="ant-button"
+          >
+            Create
+          </Button>
+        </Link>
+      </Space>
+      <Space
+        direction="horizontal"
+        style={{ width: "100%", justifyContent: "center" }}
+      >
+        <Link to="join">
+          <Button
+            size="large"
+            style={{
+              fontFamily: "Roboto Mono",
+              fontSize: "25px",
+              fontWeight: "bold",
+              color: "#090C08",
+              marginTop: "50px",
+              width: "300px",
+              height: "120px",
+              backgroundColor: "#F0F3BD",
+            }}
+          >
+            Join
+          </Button>
+        </Link>
+      </Space>
+    </div>
   );
 }
 

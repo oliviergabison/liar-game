@@ -1,5 +1,15 @@
+html {
+  color: 'red';
+}
+
+body {
+  background-color: #136F63;
+  color: 'red';
+}
+
 .App {
   text-align: center;
+  
 }
 
 .App-logo {
@@ -35,4 +45,9 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.ant-button:hover {
+  color: green;
+  border-color: green;
 }
