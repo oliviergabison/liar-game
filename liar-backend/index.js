@@ -1,7 +1,6 @@
 const Math = require("mathjs");
 const express = require("express");
 const app = express();
-const cors = require("cors");
 const http = require("http");
 const server = http.createServer(app);
 const { Server } = require("socket.io");
@@ -21,13 +20,16 @@ const animalsLst = helpers.buildList("Animal", animals.animals);
 
 const CATEGORIES_LIST = [jobsLst, foodsLst, animalsLst, raceLst, sportsLst];
 
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 const rooms = {};
 
 app.use(express.static(path.join(__dirname, "/public")));
-
-app.use(cors());
 
 app.get("/*", function (req, res) {
   res.sendFile(
