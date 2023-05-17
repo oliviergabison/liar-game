@@ -22,7 +22,7 @@ const CATEGORIES_LIST = [jobsLst, foodsLst, animalsLst, raceLst, sportsLst];
 
 const io = new Server(server, {
   cors: {
-    origin: "https://liargame.lol",
+    origin: "*",
   },
 });
 
