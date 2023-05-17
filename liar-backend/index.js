@@ -10,7 +10,6 @@ const jobs = require("./data/jobs");
 const race = require("./data/race");
 const sports = require("./data/sports");
 const animals = require("./data/animals");
-const enforce = require("express-sslify");
 const path = require("path");
 
 const jobsLst = helpers.buildList("Job", jobs.jobs);
@@ -30,7 +29,13 @@ const io = new Server(server, {
 
 const rooms = {};
 
-app.use(enforce.HTTPS());
+if (process.env.NODE_ENV === "production") {
+  app.use((req, res, next) => {
+    if (req.header("x-forwarded-proto") !== "https")
+      res.redirect(`https://${req.header("host")}${req.url}`);
+    else next();
+  });
+}
 
 app.use(express.static(path.join(__dirname, "/public")));
 
