@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button, Col, Space, Typography, Input, Form } from "antd";
 import { Link, useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 const { Title } = Typography;
 
 function Join({ socket }) {
@@ -8,6 +9,7 @@ function Join({ socket }) {
   const [codeError, setCodeError] = useState(false);
   const [roomCode, setRoomCode] = useState(null);
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const [cookies, setCookie] = useCookies(["name"]);
 
   const navigate = useNavigate();
 
@@ -42,6 +44,7 @@ function Join({ socket }) {
 
   function onNameSubmit(values) {
     const name = values.name;
+    setCookie("name", name, { path: "/" });
 
     const data = {
       name: name,

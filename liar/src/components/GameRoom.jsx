@@ -14,6 +14,7 @@ import {
 } from "antd";
 import { Link, useParams } from "react-router-dom";
 import "./GameRoom.css";
+import { useCookies } from "react-cookie";
 const { Title, Text } = Typography;
 
 function GameRoom({ socket }) {
@@ -29,6 +30,7 @@ function GameRoom({ socket }) {
   const [gameCardClicked, setGameCardClicked] = useState(false);
   const [success, setSuccess] = useState(false);
   const [form] = Form.useForm();
+  const [cookies, setCookie] = useCookies(["name"]);
   const { id } = useParams();
 
   function showModal() {
@@ -45,7 +47,7 @@ function GameRoom({ socket }) {
 
   useEffect(() => {
     socket.emit("fetch_users", id);
-    socket.emit("join_room", { name: "Test Name", room_id: id });
+    socket.emit("join_room", { name: cookies.name, room_id: id });
   }, []);
 
   useEffect(() => {
@@ -359,11 +361,13 @@ function GameRoom({ socket }) {
           name="createentries"
           colon={false}
           onFinish={onCustomItemSubmit}
+          requiredMark={false}
           style={{}}
         >
           <>
             <Form.Item
               key="category"
+              rules={[{ required: true, message: "Please input a category" }]}
               label={
                 <p
                   style={{
@@ -390,6 +394,7 @@ function GameRoom({ socket }) {
             </Form.Item>
             <Form.Item
               key="item"
+              rules={[{ required: true, message: "Please input an item" }]}
               label={
                 <p
                   style={{

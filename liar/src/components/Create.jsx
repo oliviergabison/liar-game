@@ -11,10 +11,12 @@ import {
   notification,
 } from "antd";
 import { Link, useNavigate } from "react-router-dom";
+import { useCookies } from "react-cookie";
 const { Title } = Typography;
 
 function Create({ socket }) {
   const [isConnected, setIsConnected] = useState(socket.connected);
+  const [cookies, setCookie] = useCookies(["name"]);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -65,7 +67,6 @@ function Create({ socket }) {
     }
 
     if (categories.length == 0) {
-      console.log("hi");
       notification.error({
         message: "Must select a category",
       });
@@ -76,6 +77,7 @@ function Create({ socket }) {
       categories: categories,
     };
     if (isConnected) {
+      setCookie("name", values.name, { path: "/" });
       socket.emit("create_room", data);
     } else {
       notification.error({

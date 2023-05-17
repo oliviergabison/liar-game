@@ -107,9 +107,10 @@ io.on("connection", (socket) => {
 
   socket.on("join_room", (data) => {
     try {
-      console.log("Joined Room");
-      console.log(socket.id);
       const { name, room_id } = data;
+      console.log("Joined Room");
+      console.log(name);
+      console.log(socket.id);
 
       socket.name = name;
 
