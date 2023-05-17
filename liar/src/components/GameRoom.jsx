@@ -290,7 +290,7 @@ function GameRoom({ socket }) {
         </div>
       );
     }
-    return <h1>couldn't retrieve game data</h1>;
+    return <h1>Uh Oh! You shouldn't be seeing this</h1>;
   }
 
   function onCustomItemSubmit(values) {
