@@ -99,6 +99,8 @@ io.on("connection", (socket) => {
 
   socket.on("join_room", (data) => {
     try {
+      console.log("Joined Room");
+      console.log(socket.id);
       const { name, room_id } = data;
 
       socket.name = name;
@@ -125,11 +127,11 @@ io.on("connection", (socket) => {
 
   socket.on("fetch_users", (room_id) => {
     try {
-      const userInRoom = helpers.isUserInRoom(socket.id, room_id, rooms);
-      if (!userInRoom) {
-        socket.emit("access_denied");
-        return;
-      }
+      // const userInRoom = helpers.isUserInRoom(socket.id, room_id, rooms);
+      // if (!userInRoom) {
+      //   socket.emit("access_denied");
+      //   return;
+      // }
       if (room_id in rooms) {
         io.in(room_id).emit(
           "load_users",
