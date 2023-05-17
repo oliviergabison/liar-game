@@ -10,7 +10,8 @@ const jobs = require("./data/jobs");
 const race = require("./data/race");
 const sports = require("./data/sports");
 const animals = require("./data/animals");
-var path = require("path");
+const enforce = require("express-sslify");
+const path = require("path");
 
 const jobsLst = helpers.buildList("Job", jobs.jobs);
 const foodsLst = helpers.buildList("Food", food.food);
@@ -28,6 +29,8 @@ const io = new Server(server, {
 });
 
 const rooms = {};
+
+app.use(enforce.HTTPS());
 
 app.use(express.static(path.join(__dirname, "/public")));
 
@@ -117,6 +120,7 @@ io.on("connection", (socket) => {
         io.in(room_id).emit("joined_room");
       } else {
         console.log("Room Not Found");
+        console.log(room_id);
         console.log(rooms);
         socket.emit("failed_joined_room", "Invalid Room ID");
       }
