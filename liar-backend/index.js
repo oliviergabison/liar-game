@@ -22,7 +22,7 @@ const CATEGORIES_LIST = [jobsLst, foodsLst, animalsLst, raceLst, sportsLst];
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "https://liargame.lol",
   },
 });
 
@@ -326,6 +326,4 @@ function leaveRoom(socket, room_id) {
   }
 }
 
-server.listen(process.env.PORT || 4000, () => {
-  console.log("listening on *:4000");
-});
+server.listen(process.env.PORT || 4000, () => {});
