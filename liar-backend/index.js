@@ -110,6 +110,8 @@ io.on("connection", (socket) => {
 
         io.in(room_id).emit("joined_room");
       } else {
+        console.log("Room Not Found");
+        console.log(rooms);
         socket.emit("failed_joined_room", "Invalid Room ID");
       }
     } catch (err) {
