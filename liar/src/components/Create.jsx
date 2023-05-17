@@ -65,6 +65,7 @@ function Create({ socket }) {
     }
 
     if (categories.length == 0) {
+      console.log("hi");
       notification.error({
         message: "Must select a category",
       });
@@ -76,6 +77,10 @@ function Create({ socket }) {
     };
     if (isConnected) {
       socket.emit("create_room", data);
+    } else {
+      notification.error({
+        message: "Socket is down. GL fixing this",
+      });
     }
   }
 

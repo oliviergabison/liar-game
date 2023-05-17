@@ -137,6 +137,30 @@ function GameRoom({ socket }) {
           direction="horizontal"
           style={{ width: "100%", justifyContent: "center" }}
         >
+          {inCustomGame ? (
+            <Button
+              type="primary"
+              onClick={() => socket.emit("new_custom_game", id)}
+              style={{
+                fontFamily: "Roboto Mono",
+                fontSize: "12px",
+                fontWeight: "bold",
+                marginTop: "35px",
+                borderStyle: "solid",
+                borderColor: "#F26419",
+                width: "150px",
+                color: "#F26419",
+                backgroundColor: "#F0F3BD",
+              }}
+            >
+              Next Custom Game
+            </Button>
+          ) : null}
+        </Space>
+        <Space
+          direction="horizontal"
+          style={{ width: "100%", justifyContent: "center" }}
+        >
           <Button
             onClick={() => {
               setCreateCustomGame(false);
@@ -146,7 +170,7 @@ function GameRoom({ socket }) {
               fontFamily: "Roboto Mono",
               fontSize: "12px",
               fontWeight: "bold",
-              marginTop: "35px",
+              marginTop: "5px",
               borderStyle: "solid",
               borderColor: "black",
               color: "#090C08",
@@ -178,30 +202,6 @@ function GameRoom({ socket }) {
           >
             New Custom Game
           </Button>
-        </Space>
-        <Space
-          direction="horizontal"
-          style={{ width: "100%", justifyContent: "center" }}
-        >
-          {inCustomGame ? (
-            <Button
-              type="primary"
-              onClick={() => socket.emit("new_custom_game", id)}
-              style={{
-                fontFamily: "Roboto Mono",
-                fontSize: "12px",
-                fontWeight: "bold",
-                marginTop: "5px",
-                borderStyle: "solid",
-                borderColor: "black",
-                width: "150px",
-                color: "#090C08",
-                backgroundColor: "#F0F3BD",
-              }}
-            >
-              Next Custom Game
-            </Button>
-          ) : null}
         </Space>
       </>
     );
@@ -320,6 +320,7 @@ function GameRoom({ socket }) {
         footer={[
           <Button
             form="customGameForm"
+            key="button1"
             style={{
               fontFamily: "Roboto Mono",
               fontSize: "12px",
@@ -337,6 +338,7 @@ function GameRoom({ socket }) {
           </Button>,
           <Button
             form="customGameForm"
+            key="button2"
             style={{
               fontFamily: "Roboto Mono",
               fontSize: "12px",
@@ -360,6 +362,7 @@ function GameRoom({ socket }) {
         >
           <>
             <Form.Item
+              key="category"
               label={
                 <p
                   style={{
@@ -385,6 +388,7 @@ function GameRoom({ socket }) {
               />
             </Form.Item>
             <Form.Item
+              key="item"
               label={
                 <p
                   style={{
