@@ -28,9 +28,11 @@ const io = new Server(server, {
 
 const rooms = {};
 
+app.use(express.static(path.join(__dirname, "../liar/public")));
+
 app.get("/*", function (req, res) {
   res.sendFile(
-    path.join(__dirname, "../liar/public/index.html"),
+    path.join(__dirname, "/../liar/public/index.html"),
     function (err) {
       if (err) {
         res.status(500).send(err);
