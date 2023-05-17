@@ -56,6 +56,7 @@ function GameRoom({ socket }) {
     }
 
     function loadUsers(users, host_id) {
+      console.log(users);
       setUsers(users);
       if (host_id == socket.id) {
         setIsHost(true);
