@@ -17,7 +17,7 @@
   },
   "scripts": {
     "start-client": "react-scripts start",
-    "build": "react-scripts build && (cd ../liar-backend && npm install",
+    "build": "react-scripts build && (cd ../liar-backend && npm install)",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
