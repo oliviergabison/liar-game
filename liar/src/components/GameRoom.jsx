@@ -48,7 +48,6 @@ function GameRoom({ socket }) {
   useEffect(() => {
     if (cookies.name) {
       socket.emit("join_room", { name: cookies.name, room_id: id });
-      window.location.reload();
     }
 
     socket.emit("fetch_users", id);
