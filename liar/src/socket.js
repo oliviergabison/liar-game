@@ -8,7 +8,4 @@ const URL =
 
 export const socket = io(URL, {
   transports: ["websocket", "polling", "flashsocket"],
-  reconnection: true,
-  reconnectionDelay: 500,
-  reconnectionAttempts: 50,
 });

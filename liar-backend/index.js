@@ -108,7 +108,7 @@ io.on("connection", (socket) => {
   socket.on("join_room", (data) => {
     try {
       const { name, room_id } = data;
-      console.log("Joined Room");
+      console.log("Joining Room");
       console.log(name);
       console.log(socket.id);
 
@@ -122,6 +122,8 @@ io.on("connection", (socket) => {
 
         rooms[room_id].users.push({ name: name, id: socket.id });
         rooms[room_id].user_ids[socket.id] = name;
+
+        console.log("IS THIS GOING THROUGH");
 
         io.in(room_id).emit("joined_room");
       } else {
