@@ -65,6 +65,7 @@ function GameRoom({ socket }) {
     };
     const interval = setInterval(() => {
       socket.emit("join_room", { name: cookies.name, room_id: id });
+      console.log("hi");
     }, 3000);
     dataUpdate();
 
@@ -330,18 +331,17 @@ function GameRoom({ socket }) {
         bodyStyle={{
           fontFamily: "Roboto Mono",
           backgroundColor: "#F0F3BD",
-          border: 0,
           textAlign: "center",
         }}
         headStyle={{
           fontFamily: "Roboto Mono",
           backgroundColor: "#F0F3BD",
-          border: 0,
           textAlign: "center",
         }}
         style={{
+          marginTop: "40px",
+          width: "250px",
           border: 0,
-          minWidth: "250px",
         }}
       >
         Click to reveal
