@@ -123,9 +123,11 @@ io.on("connection", (socket) => {
         rooms[room_id].users.push({ name: name, id: socket.id });
         rooms[room_id].user_ids[socket.id] = name;
 
-        console.log("IS THIS GOING THROUGH");
-
-        io.in(room_id).emit("joined_room");
+        io.in(room_id).emit(
+          "load_users",
+          helpers.getUsers(rooms[room_id].users),
+          rooms[room_id].host
+        );
       } else {
         console.log("Room Not Found");
         console.log(room_id);
