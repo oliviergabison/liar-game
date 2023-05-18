@@ -62,11 +62,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("reconnect", () => {
-    console.log(socket.id);
-    console.log("boom");
-  });
-
   socket.on("leave_room", (room_id) => {
     try {
       leaveRoom(socket, room_id);

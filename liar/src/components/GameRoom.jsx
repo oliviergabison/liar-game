@@ -535,7 +535,7 @@ function GameRoom({ socket }) {
             verticalAlign: "middle",
             color: "#F0F3BD",
             fontSize: "30px",
-            marginTop: "15px",
+            marginTop: "45px",
           }}
         >
           Room Code: {id}
