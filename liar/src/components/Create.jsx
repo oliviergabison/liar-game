@@ -34,6 +34,8 @@ function Create({ socket }) {
 
   function roomCreated(value) {
     const room_id = value.room_id;
+    setCookie("gameCode", room_id, { path: "/" });
+    setCookie("state", "new_game", { path: "/" });
 
     navigate(`/rooms/${room_id}`);
   }

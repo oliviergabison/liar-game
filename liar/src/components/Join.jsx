@@ -45,6 +45,9 @@ function Join({ socket }) {
   function onNameSubmit(values) {
     const name = values.name;
     setCookie("name", name, { path: "/" });
+    setCookie("gameCode", roomCode, { path: "/" });
+    setCookie("host", "false", { path: "/" });
+    setCookie("state", "new_game", { path: "/" });
 
     const data = {
       name: name,

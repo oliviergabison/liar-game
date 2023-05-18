@@ -89,6 +89,8 @@ io.on("connection", (socket) => {
         users: [{ name: data.name, id: socket_id }],
         user_ids: {},
         default_categories: structuredClone(category_data),
+        currentGame: { category: "", item: "" },
+        status: "new_game",
       };
       rooms[room_id]["user_ids"][socket_id] = data.name;
 
@@ -132,13 +134,27 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("update_host", (room_id) => {
+    if (room_id in rooms) {
+      rooms[room_id].host = socket.id;
+      io.in(room_id).emit(
+        "load_users",
+        helpers.getUsers(rooms[room_id].users),
+        rooms[room_id].host
+      );
+    }
+  });
+
+  socket.on("fetch_game_data", (room_id) => {
+    if (room_id in rooms) {
+      const gameData = rooms[room_id]["currentGame"];
+      const gameStatus = rooms[room_id]["status"];
+      socket.emit("update_game_data", gameData, gameStatus);
+    }
+  });
+
   socket.on("fetch_users", (room_id) => {
     try {
-      // const userInRoom = helpers.isUserInRoom(socket.id, room_id, rooms);
-      // if (!userInRoom) {
-      //   socket.emit("access_denied");
-      //   return;
-      // }
       if (room_id in rooms) {
         io.in(room_id).emit(
           "load_users",
@@ -158,6 +174,7 @@ io.on("connection", (socket) => {
       }
 
       rooms[room_id]["custom_game"] = { data: [], submitted: [] };
+      rooms[room_id]["status"] = "creating_custom_game";
 
       io.in(room_id).emit("create_custom_game");
     } catch (err) {
@@ -204,7 +221,10 @@ io.on("connection", (socket) => {
 
   socket.on("new_custom_game", (room_id) => {
     try {
-      playCustomGameRound(room_id);
+      if (room_id in rooms) {
+        rooms[room_id]["status"] = "playing_custom_game";
+        playCustomGameRound(room_id);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -234,7 +254,9 @@ io.on("connection", (socket) => {
 
   socket.on("new_game", (room_id) => {
     try {
-      playRound(room_id);
+      if (room_id in rooms) {
+        playRound(room_id);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -246,7 +268,7 @@ function playCustomGameRound(room_id) {
     if (!rooms[room_id] || !rooms[room_id].custom_game) {
       return;
     }
-
+    rooms[room_id]["status"] = "playing_custom_game";
     const entries = rooms[room_id].custom_game.data;
 
     if (entries.length == 0) {
@@ -263,6 +285,7 @@ function playCustomGameRound(room_id) {
 
     const data = { category: entry["category"], item: entry["item"] };
 
+    rooms[room_id]["currentGame"] = data;
     io.in(room_id).emit("play_custom_game", data, liar);
   } catch (err) {
     console.error(err);
@@ -272,6 +295,7 @@ function playCustomGameRound(room_id) {
 function playRound(room_id) {
   try {
     if (rooms[room_id] && rooms[room_id].categories_board) {
+      rooms[room_id]["status"] = "playing_game";
       // no more available categories
       if (Object.keys(rooms[room_id].categories_board).length == 0) {
         io.in(room_id).emit("completed_game");
@@ -302,6 +326,8 @@ function playRound(room_id) {
         delete rooms[room_id].categories_board[categoryKey];
       }
 
+      rooms[room_id]["currentGame"] = item;
+
       io.in(room_id).emit("play_round", item, liar);
     }
   } catch (err) {
@@ -319,9 +345,10 @@ function leaveRoom(socket, room_id) {
         socket.leave(room_id);
         delete rooms[room_id];
         return;
-      } else {
-        rooms[room_id].host = rooms[room_id].users[1].id;
       }
+      // } else {
+      //   rooms[room_id].host = rooms[room_id].users[1].id;
+      // }
     }
 
     // remove user from users list
