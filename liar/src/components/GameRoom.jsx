@@ -98,7 +98,7 @@ function GameRoom({ socket }) {
       setTimeout(() => {
         setSuccess(false);
         form.resetFields();
-      }, 400);
+      }, 200);
     }
 
     socket.on("disconnect", onDisconnect);
@@ -155,6 +155,7 @@ function GameRoom({ socket }) {
     setCreateCustomGame(false);
     setKeepWriting(false);
     setGameCardClicked(false);
+    setInCustomGame(false);
 
     setCookie("state", "in_game", { path: "/" });
     setCookie("gameData", data, { path: "/" });
