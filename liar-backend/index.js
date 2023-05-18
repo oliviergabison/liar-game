@@ -48,7 +48,6 @@ app.get("/*", function (req, res) {
 });
 
 io.on("connection", (socket) => {
-  console.log(socket.id);
   socket.on("disconnect", () => {
     try {
       room_id = helpers.findRoomIDByUserID(rooms, socket.id);
@@ -108,9 +107,6 @@ io.on("connection", (socket) => {
   socket.on("join_room", (data) => {
     try {
       const { name, room_id } = data;
-      console.log("Joining Room");
-      console.log(name);
-      console.log(socket.id);
 
       socket.name = name;
 
@@ -122,6 +118,8 @@ io.on("connection", (socket) => {
 
         rooms[room_id].users.push({ name: name, id: socket.id });
         rooms[room_id].user_ids[socket.id] = name;
+
+        socket.emit("joined_room");
 
         io.in(room_id).emit(
           "load_users",

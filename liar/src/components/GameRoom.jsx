@@ -65,7 +65,6 @@ function GameRoom({ socket }) {
     };
     const interval = setInterval(() => {
       socket.emit("join_room", { name: cookies.name, room_id: id });
-      console.log("hi");
     }, 3000);
     dataUpdate();
 
@@ -111,9 +110,7 @@ function GameRoom({ socket }) {
     socket.on("item_submitted_success", onSuccessCustomSubmit);
     socket.on("finished_submitting", onFinishedSubmitting);
     socket.on("unfinished_submitting", () => setSubmittedCustom(false));
-    socket.on("play_custom_game", (data, liarId) =>
-      playCustomGame(data, liarId, false)
-    );
+    socket.on("play_custom_game", playCustomGame);
     socket.on("update_game_data", updateGameData);
   });
 
@@ -132,16 +129,16 @@ function GameRoom({ socket }) {
     ) {
       // Keep track if the user that left was the liar
       if (gameStatus === "playing_custom_game") {
-        playCustomGame(gameData, socket.id, true);
+        playCustomGame(gameData, socket.id);
         return;
       }
-      playRound(gameData, socket.id, true);
+      playRound(gameData, socket.id);
     } else {
       if (gameStatus === "playing_custom_game") {
-        playCustomGame(gameData, 1234, true);
+        playCustomGame(gameData, 1234);
         return;
       }
-      playRound(gameData, 1234, true);
+      playRound(gameData, 1234);
     }
   }
 
@@ -154,14 +151,10 @@ function GameRoom({ socket }) {
     setInGame(false);
   }
 
-  function playRound(data, liarId, reconnect) {
+  function playRound(data, liarId) {
     setCreateCustomGame(false);
     setKeepWriting(false);
     setGameCardClicked(false);
-    // if (!reconnect) {
-    //   console.log("asd");
-    //   setGameCardClicked(false);
-    // }
 
     setCookie("state", "in_game", { path: "/" });
     setCookie("gameData", data, { path: "/" });
@@ -176,15 +169,10 @@ function GameRoom({ socket }) {
     if (!inGame) setInGame("true");
   }
 
-  function playCustomGame(data, liarId, reconnect) {
+  function playCustomGame(data, liarId) {
     if (createCustomGame) setCreateCustomGame(false);
     if (!inCustomGame) setInCustomGame(true);
     setGameCardClicked(false);
-    // if (!reconnect) {
-    //   console.log("hi");
-    //   console.log(reconnect);
-    //   setGameCardClicked(false);
-    // }
     setKeepWriting(false);
 
     setCookie("gameData", data, { path: "/" });
