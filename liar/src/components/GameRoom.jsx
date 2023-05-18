@@ -64,7 +64,7 @@ function GameRoom({ socket }) {
       }
     };
     const interval = setInterval(() => {
-      dataUpdate();
+      socket.emit("join_room", { name: cookies.name, room_id: id });
     }, 3000);
     dataUpdate();
 
@@ -110,26 +110,11 @@ function GameRoom({ socket }) {
     socket.on("item_submitted_success", onSuccessCustomSubmit);
     socket.on("finished_submitting", onFinishedSubmitting);
     socket.on("unfinished_submitting", () => setSubmittedCustom(false));
-    socket.on("play_custom_game", playCustomGame);
+    socket.on("play_custom_game", (data, liarId) =>
+      playCustomGame(data, liarId, false)
+    );
     socket.on("update_game_data", updateGameData);
   });
-
-  function playRound(data, liarId) {
-    setGameCardClicked(false);
-    setCreateCustomGame(false);
-    setKeepWriting(false);
-    setCookie("state", "in_game", { path: "/" });
-    setCookie("gameData", data, { path: "/" });
-    if (liarId === socket.id) {
-      setCookie("isLiar", "true", { path: "/" });
-      setGameData({ category: data.category, item: "LIAR" });
-    } else {
-      setCookie("isLiar", "false", { path: "/" });
-      setGameData(data);
-    }
-
-    if (!inGame) setInGame("true");
-  }
 
   function updateGameData(gameData, gameStatus) {
     const isLiar = cookies.isLiar;
@@ -146,16 +131,16 @@ function GameRoom({ socket }) {
     ) {
       // Keep track if the user that left was the liar
       if (gameStatus === "playing_custom_game") {
-        playCustomGame(gameData, socket.id);
+        playCustomGame(gameData, socket.id, true);
         return;
       }
-      playRound(gameData, socket.id);
+      playRound(gameData, socket.id, true);
     } else {
       if (gameStatus === "playing_custom_game") {
-        playCustomGame(gameData, 1234);
+        playCustomGame(gameData, 1234, true);
         return;
       }
-      playRound(gameData, 1234);
+      playRound(gameData, 1234, true);
     }
   }
 
@@ -168,11 +153,39 @@ function GameRoom({ socket }) {
     setInGame(false);
   }
 
-  function playCustomGame(data, liarId) {
-    if (createCustomGame) setCreateCustomGame(false);
-    if (!inCustomGame) setInCustomGame(true);
+  function playRound(data, liarId, reconnect) {
+    setCreateCustomGame(false);
     setKeepWriting(false);
     setGameCardClicked(false);
+    // if (!reconnect) {
+    //   console.log("asd");
+    //   setGameCardClicked(false);
+    // }
+
+    setCookie("state", "in_game", { path: "/" });
+    setCookie("gameData", data, { path: "/" });
+    if (liarId === socket.id) {
+      setCookie("isLiar", "true", { path: "/" });
+      setGameData({ category: data.category, item: "LIAR" });
+    } else {
+      setCookie("isLiar", "false", { path: "/" });
+      setGameData(data);
+    }
+
+    if (!inGame) setInGame("true");
+  }
+
+  function playCustomGame(data, liarId, reconnect) {
+    if (createCustomGame) setCreateCustomGame(false);
+    if (!inCustomGame) setInCustomGame(true);
+    setGameCardClicked(false);
+    // if (!reconnect) {
+    //   console.log("hi");
+    //   console.log(reconnect);
+    //   setGameCardClicked(false);
+    // }
+    setKeepWriting(false);
+
     setCookie("gameData", data, { path: "/" });
     setCookie("state", "in_game", { path: "/" });
 
