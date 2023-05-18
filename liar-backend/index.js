@@ -48,6 +48,7 @@ app.get("/*", function (req, res) {
 });
 
 io.on("connection", (socket) => {
+  console.log(socket.id);
   socket.on("disconnect", () => {
     try {
       room_id = helpers.findRoomIDByUserID(rooms, socket.id);
@@ -59,6 +60,11 @@ io.on("connection", (socket) => {
     } catch (error) {
       console.error(error);
     }
+  });
+
+  socket.on("reconnect", () => {
+    console.log(socket.id);
+    console.log("boom");
   });
 
   socket.on("leave_room", (room_id) => {

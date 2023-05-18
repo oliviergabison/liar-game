@@ -48,19 +48,29 @@ function GameRoom({ socket }) {
   }
 
   useEffect(() => {
-    const gameCode = cookies.gameCode;
-    const wasHost = cookies.host;
+    const dataUpdate = () => {
+      const gameCode = cookies.gameCode;
+      const wasHost = cookies.host;
 
-    if (gameCode === id) {
-      if (wasHost === "true") {
-        socket.emit("update_host", id);
+      if (gameCode === id) {
+        if (wasHost === "true") {
+          socket.emit("update_host", id);
+        }
+
+        socket.emit("join_room", { name: cookies.name, room_id: id });
+
+        socket.emit("fetch_game_data", id);
+        socket.emit("fetch_users", id);
       }
+    };
+    const interval = setInterval(() => {
+      dataUpdate();
+    }, 3000);
+    dataUpdate();
 
-      socket.emit("join_room", { name: cookies.name, room_id: id });
-
-      socket.emit("fetch_game_data", id);
-      socket.emit("fetch_users", id);
-    }
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
