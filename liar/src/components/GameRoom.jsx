@@ -398,7 +398,7 @@ function GameRoom({ socket }) {
                     fontSize: "15px",
                   }}
                 >
-                  Item
+                  Items (Separate with commas)
                 </p>
               }
               name="item"
