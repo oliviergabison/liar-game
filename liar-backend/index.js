@@ -349,9 +349,6 @@ function leaveRoom(socket, room_id) {
         delete rooms[room_id];
         return;
       }
-      // } else {
-      //   rooms[room_id].host = rooms[room_id].users[1].id;
-      // }
     }
 
     // remove user from users list
