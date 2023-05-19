@@ -188,7 +188,7 @@ io.on("connection", (socket) => {
   socket.on("new_custom_item", (room_id, data) => {
     try {
       if (rooms[room_id].custom_game) {
-        rooms[room_id].custom_game.data.push(data);
+        rooms[room_id].custom_game.data.concat(data.split(',').map(x => x.trim()).filter(x => x));
         socket.emit("item_submitted_success");
       }
     } catch (err) {
