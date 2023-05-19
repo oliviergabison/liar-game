@@ -14,6 +14,7 @@ import {
 } from "antd";
 import { Link, useParams } from "react-router-dom";
 import "./GameRoom.css";
+import { useCookies } from "react-cookie";
 const { Title, Text } = Typography;
 
 function GameRoom({ socket }) {
@@ -27,8 +28,10 @@ function GameRoom({ socket }) {
   const [createCustomGame, setCreateCustomGame] = useState(false);
   const [inCustomGame, setInCustomGame] = useState(false);
   const [gameCardClicked, setGameCardClicked] = useState(false);
+  const [keepWriting, setKeepWriting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [form] = Form.useForm();
+  const [cookies, setCookie] = useCookies(["name"]);
   const { id } = useParams();
 
   function showModal() {
@@ -41,10 +44,33 @@ function GameRoom({ socket }) {
 
   function handleCancel() {
     setCreateCustomGame(false);
+    setKeepWriting(true);
   }
 
   useEffect(() => {
-    socket.emit("fetch_users", id);
+    const dataUpdate = () => {
+      const gameCode = cookies.gameCode;
+      const wasHost = cookies.host;
+
+      if (gameCode === id) {
+        if (wasHost === "true") {
+          socket.emit("update_host", id);
+        }
+
+        socket.emit("join_room", { name: cookies.name, room_id: id });
+
+        socket.emit("fetch_game_data", id);
+        socket.emit("fetch_users", id);
+      }
+    };
+    const interval = setInterval(() => {
+      socket.emit("join_room", { name: cookies.name, room_id: id });
+    }, 3000);
+    dataUpdate();
+
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -54,23 +80,11 @@ function GameRoom({ socket }) {
 
     function loadUsers(users, host_id) {
       setUsers(users);
-      if (host_id == socket.id) {
+      if (host_id === socket.id) {
         setIsHost(true);
       } else {
         setIsHost(false);
       }
-    }
-
-    function playRound(data, liarId) {
-      setGameCardClicked(false);
-      setCreateCustomGame(false);
-      if (liarId == socket.id) {
-        setGameData({ category: data.category, item: "LIAR" });
-      } else {
-        setGameData(data);
-      }
-
-      if (!inGame) setInGame(true);
     }
 
     function completedGame() {
@@ -84,17 +98,10 @@ function GameRoom({ socket }) {
       setTimeout(() => {
         setSuccess(false);
         form.resetFields();
-      }, 400);
+      }, 200);
     }
 
     socket.on("disconnect", onDisconnect);
-
-    // socket.on("joined_room", () => {
-    //   setTimeout(function () {
-    //     socket.emit("fetch_users", id);
-    //     console.log(id);
-    //   }, 1000);
-    // });
     socket.on("load_users", loadUsers);
     socket.on("access_denied", () => setAccess(false));
     socket.on("play_round", playRound);
@@ -104,22 +111,79 @@ function GameRoom({ socket }) {
     socket.on("finished_submitting", onFinishedSubmitting);
     socket.on("unfinished_submitting", () => setSubmittedCustom(false));
     socket.on("play_custom_game", playCustomGame);
+    socket.on("update_game_data", updateGameData);
   });
 
+  function updateGameData(gameData, gameStatus) {
+    const isLiar = cookies.isLiar;
+    const pastGameData = cookies.gameData;
+
+    if (gameStatus === "creating_custom_game") {
+      createCustomGameSocket();
+      return;
+    }
+
+    if (
+      isLiar === "true" &&
+      JSON.stringify(pastGameData) === JSON.stringify(gameData)
+    ) {
+      // Keep track if the user that left was the liar
+      if (gameStatus === "playing_custom_game") {
+        playCustomGame(gameData, socket.id);
+        return;
+      }
+      playRound(gameData, socket.id);
+    } else {
+      if (gameStatus === "playing_custom_game") {
+        playCustomGame(gameData, 1234);
+        return;
+      }
+      playRound(gameData, 1234);
+    }
+  }
+
   function createCustomGameSocket() {
+    setCookie("state", "create_custom_game", { path: "/" });
     setCreateCustomGame(true);
+    setInCustomGame(false);
+    setKeepWriting(false);
     setSubmittedCustom(false);
     setInGame(false);
+  }
+
+  function playRound(data, liarId) {
+    setCreateCustomGame(false);
+    setKeepWriting(false);
+    setGameCardClicked(false);
+    setInCustomGame(false);
+
+    setCookie("state", "in_game", { path: "/" });
+    setCookie("gameData", data, { path: "/" });
+    if (liarId === socket.id) {
+      setCookie("isLiar", "true", { path: "/" });
+      setGameData({ category: data.category, item: "LIAR" });
+    } else {
+      setCookie("isLiar", "false", { path: "/" });
+      setGameData(data);
+    }
+
+    if (!inGame) setInGame("true");
   }
 
   function playCustomGame(data, liarId) {
     if (createCustomGame) setCreateCustomGame(false);
     if (!inCustomGame) setInCustomGame(true);
     setGameCardClicked(false);
+    setKeepWriting(false);
+
+    setCookie("gameData", data, { path: "/" });
+    setCookie("state", "in_game", { path: "/" });
 
     if (liarId === socket.id) {
+      setCookie("isLiar", "true", { path: "/" });
       setGameData({ category: data.category, item: "LIAR" });
     } else {
+      setCookie("isLiar", "false", { path: "/" });
       setGameData(data);
     }
 
@@ -145,7 +209,7 @@ function GameRoom({ socket }) {
                 fontFamily: "Roboto Mono",
                 fontSize: "12px",
                 fontWeight: "bold",
-                marginTop: "35px",
+                marginTop: "40px",
                 borderStyle: "solid",
                 borderColor: "#F26419",
                 width: "150px",
@@ -170,7 +234,7 @@ function GameRoom({ socket }) {
               fontFamily: "Roboto Mono",
               fontSize: "12px",
               fontWeight: "bold",
-              marginTop: "5px",
+              marginTop: inCustomGame ? "5px" : "40px",
               borderStyle: "solid",
               borderColor: "black",
               color: "#090C08",
@@ -203,6 +267,30 @@ function GameRoom({ socket }) {
             New Custom Game
           </Button>
         </Space>
+        {keepWriting ? (
+          <Space
+            direction="horizontal"
+            style={{ width: "100%", justifyContent: "center" }}
+          >
+            <Button
+              type="primary"
+              onClick={() => createCustomGameSocket()}
+              style={{
+                fontFamily: "Roboto Mono",
+                fontSize: "12px",
+                fontWeight: "bold",
+                marginTop: "5px",
+                borderStyle: "solid",
+                borderColor: "black",
+                color: "#090C08",
+                width: "150px",
+                backgroundColor: "#F0F3BD",
+              }}
+            >
+              Keep Writing?
+            </Button>
+          </Space>
+        ) : null}
       </>
     );
   }
@@ -232,18 +320,17 @@ function GameRoom({ socket }) {
         bodyStyle={{
           fontFamily: "Roboto Mono",
           backgroundColor: "#F0F3BD",
-          border: 0,
           textAlign: "center",
         }}
         headStyle={{
           fontFamily: "Roboto Mono",
           backgroundColor: "#F0F3BD",
-          border: 0,
           textAlign: "center",
         }}
         style={{
+          marginTop: "40px",
+          width: "250px",
           border: 0,
-          minWidth: "250px",
         }}
       >
         Click to reveal
@@ -287,7 +374,7 @@ function GameRoom({ socket }) {
         </div>
       );
     }
-    return <h1>couldn't retrieve game data</h1>;
+    return null;
   }
 
   function onCustomItemSubmit(values) {
@@ -358,11 +445,13 @@ function GameRoom({ socket }) {
           name="createentries"
           colon={false}
           onFinish={onCustomItemSubmit}
+          requiredMark={false}
           style={{}}
         >
           <>
             <Form.Item
               key="category"
+              rules={[{ required: true, message: "Please input a category" }]}
               label={
                 <p
                   style={{
@@ -389,6 +478,7 @@ function GameRoom({ socket }) {
             </Form.Item>
             <Form.Item
               key="item"
+              rules={[{ required: true, message: "Please input an item" }]}
               label={
                 <p
                   style={{
@@ -434,7 +524,7 @@ function GameRoom({ socket }) {
             verticalAlign: "middle",
             color: "#F0F3BD",
             fontSize: "30px",
-            marginTop: "50px",
+            marginTop: "45px",
           }}
         >
           Room Code: {id}

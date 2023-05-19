@@ -10,7 +10,7 @@ const jobs = require("./data/jobs");
 const race = require("./data/race");
 const sports = require("./data/sports");
 const animals = require("./data/animals");
-var path = require("path");
+const path = require("path");
 
 const jobsLst = helpers.buildList("Job", jobs.jobs);
 const foodsLst = helpers.buildList("Food", food.food);
@@ -22,23 +22,29 @@ const CATEGORIES_LIST = [jobsLst, foodsLst, animalsLst, raceLst, sportsLst];
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "*",
+    methods: ["GET", "POST"],
   },
 });
 
 const rooms = {};
 
-app.use(express.static(path.join(__dirname, "/public")));
+if (process.env.NODE_ENV === "production") {
+  app.use((req, res, next) => {
+    if (req.header("x-forwarded-proto") !== "https")
+      res.redirect(`https://${req.header("host")}${req.url}`);
+    else next();
+  });
+}
+
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/*", function (req, res) {
-  res.sendFile(
-    path.join(__dirname, "/../liar/public/index.html"),
-    function (err) {
-      if (err) {
-        res.status(500).send(err);
-      }
+  res.sendFile(path.join(__dirname, "public", "index.html"), function (err) {
+    if (err) {
+      res.status(500).send(err);
     }
-  );
+  });
 });
 
 io.on("connection", (socket) => {
@@ -83,6 +89,8 @@ io.on("connection", (socket) => {
         users: [{ name: data.name, id: socket_id }],
         user_ids: {},
         default_categories: structuredClone(category_data),
+        currentGame: { category: "", item: "" },
+        status: "new_game",
       };
       rooms[room_id]["user_ids"][socket_id] = data.name;
 
@@ -103,13 +111,25 @@ io.on("connection", (socket) => {
       socket.name = name;
 
       if (room_id in rooms) {
+        if (helpers.isUserInRoom(socket.id, room_id, rooms)) {
+          return;
+        }
         socket.join(room_id);
 
         rooms[room_id].users.push({ name: name, id: socket.id });
         rooms[room_id].user_ids[socket.id] = name;
 
-        io.in(room_id).emit("joined_room");
+        socket.emit("joined_room");
+
+        io.in(room_id).emit(
+          "load_users",
+          helpers.getUsers(rooms[room_id].users),
+          rooms[room_id].host
+        );
       } else {
+        console.log("Room Not Found");
+        console.log(room_id);
+        console.log(rooms);
         socket.emit("failed_joined_room", "Invalid Room ID");
       }
     } catch (err) {
@@ -117,13 +137,27 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("update_host", (room_id) => {
+    if (room_id in rooms) {
+      rooms[room_id].host = socket.id;
+      io.in(room_id).emit(
+        "load_users",
+        helpers.getUsers(rooms[room_id].users),
+        rooms[room_id].host
+      );
+    }
+  });
+
+  socket.on("fetch_game_data", (room_id) => {
+    if (room_id in rooms) {
+      const gameData = rooms[room_id]["currentGame"];
+      const gameStatus = rooms[room_id]["status"];
+      socket.emit("update_game_data", gameData, gameStatus);
+    }
+  });
+
   socket.on("fetch_users", (room_id) => {
     try {
-      const userInRoom = helpers.isUserInRoom(socket.id, room_id, rooms);
-      if (!userInRoom) {
-        socket.emit("access_denied");
-        return;
-      }
       if (room_id in rooms) {
         io.in(room_id).emit(
           "load_users",
@@ -143,6 +177,7 @@ io.on("connection", (socket) => {
       }
 
       rooms[room_id]["custom_game"] = { data: [], submitted: [] };
+      rooms[room_id]["status"] = "creating_custom_game";
 
       io.in(room_id).emit("create_custom_game");
     } catch (err) {
@@ -189,7 +224,10 @@ io.on("connection", (socket) => {
 
   socket.on("new_custom_game", (room_id) => {
     try {
-      playCustomGameRound(room_id);
+      if (room_id in rooms) {
+        rooms[room_id]["status"] = "playing_custom_game";
+        playCustomGameRound(room_id);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -219,7 +257,9 @@ io.on("connection", (socket) => {
 
   socket.on("new_game", (room_id) => {
     try {
-      playRound(room_id);
+      if (room_id in rooms) {
+        playRound(room_id);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -231,7 +271,7 @@ function playCustomGameRound(room_id) {
     if (!rooms[room_id] || !rooms[room_id].custom_game) {
       return;
     }
-
+    rooms[room_id]["status"] = "playing_custom_game";
     const entries = rooms[room_id].custom_game.data;
 
     if (entries.length == 0) {
@@ -248,6 +288,7 @@ function playCustomGameRound(room_id) {
 
     const data = { category: entry["category"], item: entry["item"] };
 
+    rooms[room_id]["currentGame"] = data;
     io.in(room_id).emit("play_custom_game", data, liar);
   } catch (err) {
     console.error(err);
@@ -257,6 +298,7 @@ function playCustomGameRound(room_id) {
 function playRound(room_id) {
   try {
     if (rooms[room_id] && rooms[room_id].categories_board) {
+      rooms[room_id]["status"] = "playing_game";
       // no more available categories
       if (Object.keys(rooms[room_id].categories_board).length == 0) {
         io.in(room_id).emit("completed_game");
@@ -287,6 +329,8 @@ function playRound(room_id) {
         delete rooms[room_id].categories_board[categoryKey];
       }
 
+      rooms[room_id]["currentGame"] = item;
+
       io.in(room_id).emit("play_round", item, liar);
     }
   } catch (err) {
@@ -304,9 +348,10 @@ function leaveRoom(socket, room_id) {
         socket.leave(room_id);
         delete rooms[room_id];
         return;
-      } else {
-        rooms[room_id].host = rooms[room_id].users[1].id;
       }
+      // } else {
+      //   rooms[room_id].host = rooms[room_id].users[1].id;
+      // }
     }
 
     // remove user from users list
@@ -326,6 +371,4 @@ function leaveRoom(socket, room_id) {
   }
 }
 
-server.listen(process.env.PORT || 4000, () => {
-  console.log("listening on *:4000");
-});
+server.listen(process.env.PORT || 4000, () => {});
